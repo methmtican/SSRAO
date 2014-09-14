@@ -1,0 +1,13 @@
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+
+// remove some glm notes
+#cmakedefine GLM_FORCE_RADIANS
+
+// conditionally compile in support for DevIL
+#cmakedefine WITH_IL
+
+// conditionally compile in support for DevIL Utility ToolKit
+#cmakedefine WITH_ILUT
+
+#endif

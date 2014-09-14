@@ -1,4 +1,6 @@
 #include "GLObject.h"
+#include "config.h"
+
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
@@ -12,13 +14,21 @@
   #include <IL/ilut.h>
 #endif
 
+// GLM
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 using namespace std;
 
-float  GLObject::projection[16];
-GLuint GLObject::uni_proj;
+glm::mat4 GLObject::proj_mat;
+glm::mat4 GLObject::view_mat;
+GLuint    GLObject::uni_proj;
+GLuint    GLObject::uni_mv;
 
 void GLObject::setProjectionMatrix( float fovy, float aspect, float z_near, float z_far )
 {
+  proj_mat = glm::perspective( fovy, aspect, z_near, z_far );
+/*
     for( int i=0; i<16; i++ )
       projection[i] = 0.0;
 
@@ -29,7 +39,13 @@ void GLObject::setProjectionMatrix( float fovy, float aspect, float z_near, floa
     projection[14] = (2.0 * z_far  * z_near ) / (z_near - z_far);
     projection[11] = -1.0;
     projection[15] = 0.0;
+*/
 }
+
+void GLObject::setViewMatrix( glm::vec3& eye, glm::vec3& center, glm::vec3& up )
+{
+  view_mat = glm::lookAt( eye, center, up );
+} 
 
 char* GLObject::readShaderFile( const char* filename )
 {
@@ -37,14 +53,11 @@ char* GLObject::readShaderFile( const char* filename )
   if( !file.good() )
     printf( "Error: Couldn't open %s for reading!\n", filename );
 
-  printf( "seek end\n" );
   file.seekg( 0, ios::end );
   int length = file.tellg() ;
-  printf( "seek beg\n" );
   file.seekg( 0, ios::beg );
 
   char* buff = new char[ length+1 ];
-  printf( "read\n" );
   file.read( buff, length );
   file.close();
 
@@ -97,13 +110,9 @@ GLObject::GLObject()
     simple_lazy_state = false;
 
     texture_id = 0;
-    num_quads = 0;
+    num_faces = 0;
 
-    rotation = 0.0;
-    translation[0] = 0.0;
-    translation[1] = 0.0;
-    translation[2] = 0.0;
-    scale = 1.0;
+    vao = 0;
 }
 
 void GLObject::loadTexture( const char* filename )
@@ -202,8 +211,6 @@ void GLObject::loadTexture( const char* filename )
                   dim_u, dim_v, 0,
                   GL_RGB, GL_UNSIGNED_BYTE, data );
 
-    //for( int i=240*800*3; i<241*800*3; i+=3 )
-    //    printf( "  image[%i] = ( %i, %i, %i )\n", i, data[i], data[i+1], data[i+2] );
 #endif
 }
 
@@ -214,11 +221,12 @@ void GLObject::loadShader( const char* filename )
     char* shader_src[2];
 
     shader_src[0] = new char[ STRING_LENGTH ];
-    printf( "Reading shader file\n" );
+    //printf( "Reading shader file\n" );
     shader_src[1] = readShaderFile( filename );
 
     // Create the shaders
-    printf( "Creating Vertex Shader" );
+    //printf( "Creating Vertex Shader\n" );
+    fflush(stdout);
     int shader_vert = glCreateShader( GL_VERTEX_SHADER );
     strncpy( shader_src[0], "#define VERTEX_SHADER\n", STRING_LENGTH );
     glShaderSource( shader_vert, 2, (const char**)shader_src, NULL );
@@ -228,7 +236,7 @@ void GLObject::loadShader( const char* filename )
     int shader_geom = -1;
     if( strstr( shader_src[1], "GEOMETRY_SHADER" ) != 0 )
     {
-        printf( "Creating Geometry Shader" );
+        //printf( "Creating Geometry Shader\n" );
         shader_geom = glCreateShader( GL_GEOMETRY_SHADER );
         strncpy( shader_src[0], "#define GEOMETRY_SHADER\n", STRING_LENGTH );
         glShaderSource( shader_geom, 2, (const char**)shader_src, NULL );
@@ -236,7 +244,7 @@ void GLObject::loadShader( const char* filename )
         printShaderLog( shader_geom, filename, "GEOMETRY" );
     }
 
-    printf( "Creating Fragment Shader" );
+    //printf( "Creating Fragment Shader\n" );
     int shader_frag = glCreateShader( GL_FRAGMENT_SHADER );
     strncpy( shader_src[0], "#define FRAGMENT_SHADER\n", STRING_LENGTH );
     glShaderSource( shader_frag, 2, (const char**)shader_src, NULL );
@@ -244,27 +252,27 @@ void GLObject::loadShader( const char* filename )
     printShaderLog( shader_frag, filename, "FRAGMENT" );
 
     // Create the Program
-    printf( "Creating Program...\n" );
+    //printf( "Creating Program...\n" );
     prog = glCreateProgram();
     glAttachShader( prog, shader_vert );
     if( shader_geom != -1 ) glAttachShader(prog, shader_geom );
     glAttachShader( prog, shader_frag );
 
-    //glBindFragDataLocation( prog, 0, "fragData" );
-        printf( "Binding attribute locations...\n" );
-    glBindAttribLocation( prog, 0, "position" );
-    glBindAttribLocation( prog, 1, "texcoord" );
-    glBindAttribLocation( prog, 2, "color" );
+    glBindFragDataLocation( prog, 0, "fragData" );
+    //printf( "Binding attribute locations...\n" );
+    glBindAttribLocation( prog, attrib_position, "position" );
+    glBindAttribLocation( prog, attrib_normal,   "normal" );
+    glBindAttribLocation( prog, attrib_color,    "texcoord" );
+    glBindAttribLocation( prog, attrib_texcoord, "color" );
 
     glLinkProgram( prog );
-    printf( "Program linked....\n" );
+    glValidateProgram( prog );
+    //printf( "Program linked....\n" );
     printProgramLog( prog, filename );
 
     uni_proj        = glGetUniformLocation( prog, "projection" );
+    uni_mv          = glGetUniformLocation( prog, "modelview" );
     uni_texture     = glGetUniformLocation( prog, "texture" );
-    uni_rotation    = glGetUniformLocation( prog, "rotation" );
-    uni_translation = glGetUniformLocation( prog, "translation" );
-    uni_scale       = glGetUniformLocation( prog, "scale" );
 
     delete[] shader_src[0];
     delete[] shader_src[1];
@@ -272,14 +280,19 @@ void GLObject::loadShader( const char* filename )
     simple_lazy_state = true ;
 }
 
-void GLObject::loadGeometry( GLfloat* data, int num_verticies,
-                             GLuint* idata,  int num_indicies )
+void GLObject::loadInterleaved( GLfloat* data, int num_verticies,
+                                GLuint* idata,  int num_indicies )
 {
+    // FIXME: this currently assumes the data is interleaved:
+    //          3 component position
+    //          2 component texture coordinate
+    //          3 component color
     int num_components = 3 + 2 + 3;
     int data_size  = num_verticies * num_components;
     int idata_size = num_indicies;
 
-    glGenVertexArrays(1, &vao );
+    if( !vao )
+      glGenVertexArrays(1, &vao );
     glBindVertexArray( vao );
 
     GLuint vbuffer;
@@ -302,57 +315,70 @@ void GLObject::loadGeometry( GLfloat* data, int num_verticies,
     glEnableVertexAttribArray( attrib_color );
 
     glBindVertexArray( 0 );
+}
 
-    num_quads = num_indicies / 4;
+void GLObject::loadVertexAttribute( GLfloat* data, int num_vertices, Attribute attribute )
+{
+    if( !vao )
+      glGenVertexArrays(1, &vao );
+    glBindVertexArray( vao );
 
-    // Create an axis aligned bounding box
-    center[0] = 0.0;
-    center[1] = 0.0;
-    center[2] = 0.0;
-
-    for( int i=0; i<data_size; i+=num_components )
+    GLint num_comps = 0;
+    GLint attrib = 0;
+    switch( attribute )
     {
-      center[0] += data[i+0];
-      center[1] += data[i+1];
-      center[2] += data[i+2];
-    }
+    case ATTRIBUTE_POSITION:
+      num_comps = 3;
+      attrib = attrib_position;
+      break;
+    case ATTRIBUTE_NORMAL:
+      num_comps = 3;
+      attrib = attrib_normal;
+      break;
+    case ATTRIBUTE_COLOR:
+      num_comps = 4;
+      attrib = attrib_color;
+      break;
+    case ATTRIBUTE_TEXCOORD:
+      num_comps = 2;
+      attrib = attrib_texcoord;
+      break;
+    };
 
-    center[0] /= num_verticies;
-    center[1] /= num_verticies;
-    center[2] /= num_verticies;
-  
-    size[0] = 0.0;
-    size[1] = 0.0;
-    size[2] = 0.0;
+    // FIXME: if loadVertexAttribute was called already for an attribute, we should reuse the previous buffer
+    GLuint buffer;
+    glGenBuffers( 1, &buffer );
+    glBindBuffer( GL_ARRAY_BUFFER, buffer );
+    glBufferData( GL_ARRAY_BUFFER, num_comps*num_vertices*sizeof(float), data, GL_STREAM_DRAW );
 
-    for( int i=0; i<data_size; i+=num_components )
-    {
-      size[0] = max( size[0], fabsf( data[i+0] - center[0] ));
-      size[1] = max( size[1], fabsf( data[i+1] - center[1] ));
-      size[2] = max( size[2], fabsf( data[i+2] - center[2] ));
-    }
+    glEnableVertexAttribArray( attrib );
+    glVertexAttribPointer( attrib, num_comps, GL_FLOAT, 0, 0, (void*)0 );
 
-    // Don't allow a size less than 0.01
-    size[0] = fmaxf( size[0], 0.01 );
-    size[1] = fmaxf( size[1], 0.01 );
-    size[2] = fmaxf( size[2], 0.01 );
+    glBindVertexArray( 0 );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
 }
 
-void GLObject::setRotation( float rad )
+void GLObject::loadFaces( GLuint* faces, int _num_faces )
 {
-    rotation = rad;
+    if( !vao )
+      glGenVertexArrays(1, &vao );
+    glBindVertexArray( vao );
+
+    GLuint buffer;
+    // FIXME: this currently assumes triangle faces
+    glGenBuffers( 1, &buffer );
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, buffer );
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, 3*_num_faces*sizeof(GLuint), faces, GL_STREAM_DRAW );
+
+    glBindVertexArray( 0 );
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+    num_faces = _num_faces;
 }
 
-void GLObject::setTranslation( float vec[] )
+void GLObject::setModelMatrix( glm::mat4& mat )
 {
-    translation[0] = vec[0];
-    translation[1] = vec[1];
-    translation[2] = vec[2];
-}
-
-void GLObject::setScale( float s )
-{
-    scale = s;
+    model_mat = mat;
 }
 
 void GLObject::setSelectable( bool sel, void (*cb)(void) )
@@ -365,36 +391,20 @@ void GLObject::select()
   if( select_cb ) select_cb();
 }
 
-bool GLObject::contains( float pt[3] )
-{
-/*
-  printf( "contains()\n" );
-  printf( "  pt     = ( %f, %f, %f )\n", pt[0], pt[1], pt[2] );
-  printf( "  center = ( %f, %f, %f )\n", center[0], center[1], center[2] );
-  printf( "  size   = ( %f, %f, %f )\n", size[0], size[1], size[2] );
-  printf( "  contains = ( %s, %s, %s )\n", fabsf( pt[0] - center[0] ) <= size[0] ? "TRUE" : "FALSE",
-                                           fabsf( pt[1] - center[1] ) <= size[1] ? "TRUE" : "FALSE",
-                                           fabsf( pt[2] - center[2] ) <= size[2] ? "TRUE" : "FALSE" );
-*/
-  return ( fabsf( pt[0] - center[0] ) <= size[0] ) &&
-         ( fabsf( pt[1] - center[1] ) <= size[1] ) &&
-         ( fabsf( pt[2] - center[2] ) <= size[2] );
-}
-
 void GLObject::draw()
 {
-    glActiveTexture( GL_TEXTURE0 );
-    glBindTexture( GL_TEXTURE_2D, texture_id );
+    //glActiveTexture( GL_TEXTURE0 );
+    //glBindTexture( GL_TEXTURE_2D, texture_id );
 
     glUseProgram( prog );
 
-    glUniformMatrix4fv( uni_proj, 1, false, projection );
-    glUniform1i( uni_texture, 0 );
-    glUniform1f( uni_rotation, rotation );
-    glUniform3fv( uni_translation, 3, translation );
-    glUniform1f( uni_scale, scale );
+    glUniformMatrix4fv( uni_proj, 1, false, glm::value_ptr( proj_mat ));
+    //glUniformMatrix4fv( uni_mv, 1, false, glm::value_ptr( view_mat ));
+    //glUniformMatrix4fv( uni_mv, 1, false, glm::value_ptr( view_mat * model_mat ));
+    glUniformMatrix4fv( uni_mv, 1, false, glm::value_ptr( model_mat * view_mat ));
+    //glUniform1i( uni_texture, 0 );
 
     glBindVertexArray( vao );
 
-    glDrawElements( GL_QUADS, num_quads*4, GL_UNSIGNED_INT, (void*)0 );
+    glDrawElements( GL_TRIANGLES, num_faces*3, GL_UNSIGNED_INT, (void*)0 );
 }
