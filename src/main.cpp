@@ -1,6 +1,6 @@
 // internal
-//#include "window.h"
 #include "GLObject.h"
+#include "GLFrameBuffer.h"
 #include "config.h"
 
 // core libraries
@@ -28,6 +28,8 @@
 
 int num_models;
 GLObject** models;
+GLObject*  screen_quad;
+GLFrameBuffer** fbos;
 
 typedef std::vector<glm::mat4> MatrixStack;
 MatrixStack matrix_stack;
@@ -37,6 +39,8 @@ glm::vec3 center( 0.3, 7.5, 0.4 );
 glm::vec3 up( 0.0, 1.0, 0.0 );
 glm::vec3 dir;
 
+int res[] = { 800, 800 };
+
 int mouse_button_state;
 glm::vec2 mouse_pos;
 
@@ -45,8 +49,16 @@ void draw()
   glClearColor( 0.4, 0.4, 1.0, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+  // GBuffer Pass
+  //fbos[0] -> bind();
+
   for( int i=0; i<num_models; i++ )
     models[i] -> draw();
+
+  // Lighting Pass
+  //GLFrameBuffer::unbind();
+
+  //screen_quad -> draw();
 
   glutSwapBuffers();
   glutPostRedisplay();
@@ -70,25 +82,8 @@ void setModelMats( aiNode* node, int level=0 )
   matrix_stack . pop_back();
 }
 
-void loadModel()
+void loadModels()
 {
-#ifdef TEST_GL_OBJECT
-  num_models = 1;
-  models = new GLObject*[ num_models ];
-  GLfloat positions[] = { -100.0, -100.0, 0.0,
-                          -100.0,  100.0, 0.0,
-                           100.0,  100.0, 0.0,
-                           100.0, -100.0, 0.0 };
-  models[0] = new GLObject();
-  models[0] -> loadVertexAttribute( positions, 4, GLObject::ATTRIBUTE_POSITION );
-
-  GLuint faces[] = { 0, 1, 2, 0, 3, 2 };
-  models[0] -> loadFaces( faces, 2 );
-
-  models[0] -> loadShader( "../data/basic.glsl" );
-
-  return;
-#else
 
   const aiScene* scene = aiImportFile( "../data/sponza.obj", aiProcessPreset_TargetRealtime_MaxQuality );   
 
@@ -106,6 +101,7 @@ void loadModel()
   for( int i=0; i< num_models; i++ )
   {
     models[i] = new GLObject();
+    //models[i] -> loadShader( "../data/g-buffer.glsl" );
     models[i] -> loadShader( "../data/basic.glsl" );
 
     const aiMesh* mesh = scene -> mMeshes[i];
@@ -172,7 +168,21 @@ void loadModel()
   }
 
   setModelMats( scene -> mRootNode );
-#endif
+
+  // Create Screen Quad Model
+  GLfloat positions[] = { -1.0, -1.0, 0.0,
+                          -1.0,  1.0, 0.0,
+                           1.0,  1.0, 0.0,
+                           1.0, -1.0, 0.0 };
+  screen_quad = new GLObject();
+  screen_quad -> loadVertexAttribute( positions, 4, GLObject::ATTRIBUTE_POSITION );
+
+  GLuint faces[] = { 0, 2, 1, 0, 3, 2 };
+  screen_quad -> loadFaces( faces, 2 );
+  //screen_quad -> loadShader( "../data/lighting.glsl" );
+  screen_quad -> setTexture( fbos[0] -> getColorAttachmentTexture( 0 ), 0 );
+  screen_quad -> setTexture( fbos[0] -> getColorAttachmentTexture( 1 ), 1 );
+  screen_quad -> setTexture( fbos[0] -> getColorAttachmentTexture( 2 ), 2 ); 
 }
 
 void debugOutput( GLenum source, GLenum type, GLuint id,
@@ -193,17 +203,27 @@ void init()
   matrix_stack.push_back( glm::mat4() );
 
   glGetUniformBlockIndex = (PFNGLGETUNIFORMBLOCKINDEXPROC) glutGetProcAddress("glGetUniformBlockIndex");
-  glUniformBlockBinding = (PFNGLUNIFORMBLOCKBINDINGPROC) glutGetProcAddress("glUniformBlockBinding");
-  glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC) glutGetProcAddress("glGenVertexArrays");
-  glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)glutGetProcAddress("glBindVertexArray");
-  glBindBufferRange = (PFNGLBINDBUFFERRANGEPROC) glutGetProcAddress("glBindBufferRange");
-  glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC) glutGetProcAddress("glDeleteVertexArrays");
+  glUniformBlockBinding  = (PFNGLUNIFORMBLOCKBINDINGPROC)  glutGetProcAddress("glUniformBlockBinding");
+  glGenVertexArrays      = (PFNGLGENVERTEXARRAYSPROC)      glutGetProcAddress("glGenVertexArrays");
+  glBindVertexArray      = (PFNGLBINDVERTEXARRAYPROC)      glutGetProcAddress("glBindVertexArray");
+  glBindBufferRange      = (PFNGLBINDBUFFERRANGEPROC)      glutGetProcAddress("glBindBufferRange");
+  glDeleteVertexArrays   = (PFNGLDELETEVERTEXARRAYSPROC)   glutGetProcAddress("glDeleteVertexArrays");
   glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC) glutGetProcAddress("glDebugMessageCallback");
+  glGenFramebuffers      = (PFNGLGENFRAMEBUFFERSPROC)      glutGetProcAddress("glGenFramebuffers");
+  glDeleteFramebuffers   = (PFNGLDELETEFRAMEBUFFERSPROC)   glutGetProcAddress("glDeleteFramebuffers");
+  glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) glutGetProcAddress("glFramebufferTexture2D");
+  glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) glutGetProcAddress("glCheckFramebufferStatus");
+  glGenRenderbuffers     = (PFNGLGENRENDERBUFFERSPROC)     glutGetProcAddress("glGenRenderbuffers");
+  glBindRenderbuffer     = (PFNGLBINDRENDERBUFFERPROC)     glutGetProcAddress("glBindRenderbuffer");
+  glRenderbufferStorage  = (PFNGLRENDERBUFFERSTORAGEPROC)  glutGetProcAddress("glRenderbufferStorage");
+  glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) glutGetProcAddress("glFramebufferRenderbuffer"); 
+  glBindFramebuffer      = (PFNGLBINDFRAMEBUFFERPROC)      glutGetProcAddress("glBindFramebuffer");
+  
 
   GLObject::setProjectionMatrix( 60.0 * M_PI / 180.0 , 1.0, 0.1, 100.0 );
   GLObject::setViewMatrix( eye, center, up );
  
-  glViewport( 0, 0, 800, 800 );
+  glViewport( 0, 0, res[0], res[1] );
 
   glEnable( GL_DEPTH_TEST );
   glEnable( GL_MULTISAMPLE );
@@ -218,6 +238,17 @@ void init()
   // initialize the look direction;
   dir = glm::normalize( center - eye );
   center = eye + dir;
+
+  // initialize the g-buffer
+  fbos    = new GLFrameBuffer*[1];
+  fbos[0] = new GLFrameBuffer( res );
+  fbos[0] -> pushColorAttachment( GL_RGBA ); // COLORS
+  fbos[0] -> pushColorAttachment( GL_RGBA32F ); // NORMALS (xyz) / UNUSED (a)
+  fbos[0] -> pushColorAttachment( GL_RGBA32F ); // POSITIONS
+  fbos[0] -> pushDepthStencilAttachment( GL_DEPTH_COMPONENT24 ); // Z buffer
+
+  // bind the system fbo
+  GLFrameBuffer::unbind();
 }
 
 void mouseButtons( int button, int state, int x, int y )
@@ -291,7 +322,7 @@ int main( int argc, char **argv )
   glutInitContextFlags (GLUT_COMPATIBILITY_PROFILE );
 
   glutInitWindowPosition(100,100);
-  glutInitWindowSize( 800, 800 );
+  glutInitWindowSize( res[0], res[1] );
   glutCreateWindow( "SSR and SSAO Demo");
         
   glutDisplayFunc( draw );
@@ -308,7 +339,7 @@ int main( int argc, char **argv )
   glutSetOption( GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS );
 
   printf( "Loading Model...\n" );
-  loadModel();
+  loadModels();
 
   printf( "Drawing...\n" );
   glutMainLoop();

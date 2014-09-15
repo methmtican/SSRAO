@@ -13,7 +13,7 @@ uniform mat4 modelview;
 out vec4 color_vert;
 out vec2 texcoord_vert;
 out vec3 normal_vert;
-out vec3 light_dir;
+out vec4 pos_vert;
 
 void main()
 {
@@ -21,9 +21,7 @@ void main()
   texcoord_vert = texcoord;
   color_vert    = color;
   normal_vert   = normalize(( modelview * vec4( normal, 0.0 )).xyz );
-
-  // hard coded directional light for now
-  light_dir     = ( modelview * normalize(vec4( 1.0, 1.0, 1.0, 0.0 ))).xyz ;
+  pos_vert      = modelview * pos;
 
   gl_Position = projection * modelview * pos;
 }
@@ -37,19 +35,18 @@ uniform sampler2D texture;
 in vec4 color_vert;
 in vec2 texcoord_vert;
 in vec3 normal_vert;
-in vec3 light_dir;
+in vec4 pos_vert;
 
 out vec4 color;
+out vec4 gbuff1; // normal + unused
+out vec4 gbuff2; // position
 
 void main()
 {
-  // Simply grab the texel and modify by vertex color
-  //vec4 color = texture2D( texture, texcoord_vert ) ;
-  //color.rgb *= color_vert.rgb ;
-
-  color = vec4( 1.0 );
-  color = color * dot( normal_vert, light_dir );
-  color = vec4( color ) ;
+  color = vec4( 1.0 ) ;
+  gbuff1 = vec4( normal_vert, 0.0 ) ;
+  gbuff2 = pos_vert;
+  
 }
 
 #endif

@@ -24,6 +24,9 @@ glm::mat4 GLObject::proj_mat;
 glm::mat4 GLObject::view_mat;
 GLuint    GLObject::uni_proj;
 GLuint    GLObject::uni_mv;
+GLuint    GLObject::uni_tex_color;
+GLuint    GLObject::uni_tex_normal;
+GLuint    GLObject::uni_tex_pos;
 
 void GLObject::setProjectionMatrix( float fovy, float aspect, float z_near, float z_far )
 {
@@ -214,6 +217,12 @@ void GLObject::loadTexture( const char* filename )
 #endif
 }
 
+void GLObject::setTexture( GLuint tex_id, GLuint unit )
+{
+  //glActiveTexture( GL_TEXTURE0+unit );
+  //glBindTexture( GL_TEXTURE_2D, tex_id );
+}
+
 void GLObject::loadShader( const char* filename )
 {
 
@@ -258,7 +267,10 @@ void GLObject::loadShader( const char* filename )
     if( shader_geom != -1 ) glAttachShader(prog, shader_geom );
     glAttachShader( prog, shader_frag );
 
-    glBindFragDataLocation( prog, 0, "fragData" );
+    glBindFragDataLocation( prog, 0, "color" );
+    glBindFragDataLocation( prog, 1, "gbuff1" );
+    glBindFragDataLocation( prog, 2, "gbuff2" );
+
     //printf( "Binding attribute locations...\n" );
     glBindAttribLocation( prog, attrib_position, "position" );
     glBindAttribLocation( prog, attrib_normal,   "normal" );
@@ -273,6 +285,9 @@ void GLObject::loadShader( const char* filename )
     uni_proj        = glGetUniformLocation( prog, "projection" );
     uni_mv          = glGetUniformLocation( prog, "modelview" );
     uni_texture     = glGetUniformLocation( prog, "texture" );
+    uni_tex_color   = glGetUniformLocation( prog, "tex_color" );
+    uni_tex_pos     = glGetUniformLocation( prog, "tex_pos" );
+    uni_tex_normal  = glGetUniformLocation( prog, "tex_normal" );
 
     delete[] shader_src[0];
     delete[] shader_src[1];
@@ -393,16 +408,14 @@ void GLObject::select()
 
 void GLObject::draw()
 {
-    //glActiveTexture( GL_TEXTURE0 );
-    //glBindTexture( GL_TEXTURE_2D, texture_id );
-
     glUseProgram( prog );
 
-    glUniformMatrix4fv( uni_proj, 1, false, glm::value_ptr( proj_mat ));
-    //glUniformMatrix4fv( uni_mv, 1, false, glm::value_ptr( view_mat ));
-    //glUniformMatrix4fv( uni_mv, 1, false, glm::value_ptr( view_mat * model_mat ));
-    glUniformMatrix4fv( uni_mv, 1, false, glm::value_ptr( model_mat * view_mat ));
+    if( uni_proj != -1 )       glUniformMatrix4fv( uni_proj, 1, false, glm::value_ptr( proj_mat ));
+    if( uni_mv != -1 )         glUniformMatrix4fv( uni_mv, 1, false, glm::value_ptr( view_mat * model_mat ));
     //glUniform1i( uni_texture, 0 );
+    //if( uni_tex_color != -1 )  glUniform1i( uni_tex_color, 0 );
+    //if( uni_tex_normal != -1 ) glUniform1i( uni_tex_normal,1 );
+    //if( uni_tex_pos != -1 )    glUniform1i( uni_tex_pos,   2 );
 
     glBindVertexArray( vao );
 

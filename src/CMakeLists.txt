@@ -1,5 +1,6 @@
 set( ssrao_SRCS main.cpp
-                GLObject.cpp )
+                GLObject.cpp
+                GLFrameBuffer.cpp )
               
 include_directories( ${INCLUDE_INSTALL_DIR} )
  

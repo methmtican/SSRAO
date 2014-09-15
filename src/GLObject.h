@@ -25,6 +25,9 @@ private:
         static glm::mat4 proj_mat;
         static glm::mat4 view_mat;
 
+        static GLuint uni_tex_color;
+        static GLuint uni_tex_normal;
+        static GLuint uni_tex_pos;
         static GLuint uni_proj;
         static GLuint uni_mv;
 
@@ -44,6 +47,7 @@ public:
 	GLObject();
 
 	void loadTexture( const char* filename );
+        void setTexture( GLuint tex_id, GLuint unit );
 	void loadShader( const char* filename );
 	void loadInterleaved( GLfloat* data, int num_verticies,
                               GLuint* idata,  int num_indicies );
@@ -55,6 +59,7 @@ public:
 
         void setSelectable( bool sel, void(*cb)(void)=0 );
         void select();
+
 
 	void draw();
 };
