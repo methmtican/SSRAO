@@ -1,6 +1,8 @@
 // internal
 #include "GLObject.h"
 #include "GLFrameBuffer.h"
+#include "GLMaterial.h"
+#include "GLShader.h"
 #include "config.h"
 
 // core libraries
@@ -96,13 +98,17 @@ void loadModels()
   num_models = scene -> mNumMeshes;
   models = new GLObject*[ num_models ];
 
+  GLShader* scene_shader = new GLShader( "../data/basic.glsl" );
+
+  GLMaterial* scene_mat = new GLMaterial;
+  scene_mat -> setShader( scene_shader );
+  
   printf( "Loaded sponza.obj\n" );
   printf( "  num meshes: %i\n", num_models );
   for( int i=0; i< num_models; i++ )
   {
     models[i] = new GLObject();
-    //models[i] -> loadShader( "../data/g-buffer.glsl" );
-    models[i] -> loadShader( "../data/basic.glsl" );
+    models[i] ->  setMaterial( scene_mat );
 
     const aiMesh* mesh = scene -> mMeshes[i];
     
@@ -125,14 +131,14 @@ void loadModels()
     {
       //printf( "    has positions\n" );
       models[i] -> loadVertexAttribute( (float*)mesh -> mVertices, mesh -> mNumVertices,
-                                        GLObject::ATTRIBUTE_POSITION );
+                                        GLShader::ATTRIBUTE_POSITION );
     }
 
     if( mesh -> HasNormals() )
     {
       //printf( "    has normals\n" );
       models[i] -> loadVertexAttribute( (float*)mesh -> mNormals, mesh -> mNumVertices,
-                                        GLObject::ATTRIBUTE_NORMAL );
+                                        GLShader::ATTRIBUTE_NORMAL );
     }
 
     if( mesh -> HasTextureCoords(0))
@@ -145,7 +151,7 @@ void loadModels()
         data[2*tc+1] = mesh -> mTextureCoords[0][tc].y;
       }
       models[i] -> loadVertexAttribute( data, mesh -> mNumVertices,
-                                        GLObject::ATTRIBUTE_TEXCOORD );
+                                        GLShader::ATTRIBUTE_TEXCOORD );
       delete[] data;
     }
 
@@ -161,13 +167,29 @@ void loadModels()
         data[2*c+3] = mesh -> mColors[2][c].a;
       }
       models[i] -> loadVertexAttribute( data, mesh -> mNumVertices,
-                                        GLObject::ATTRIBUTE_COLOR );
+                                        GLShader::ATTRIBUTE_COLOR );
     }
-
-    // TODO: LOAD MATERIALS
   }
 
   setModelMats( scene -> mRootNode );
+
+  printf( "Has embeded textures: %s\n", scene -> HasTextures() ? "YES" : "NO" );
+  printf( "num materials = %i\n", scene -> mNumMaterials );
+  for( unsigned int i=0; i < scene -> mNumMaterials; i++ )
+  {
+    int texIndex = 0;
+    aiReturn texFound = AI_SUCCESS;
+
+    aiString path; 
+
+    while( texFound == AI_SUCCESS )
+    {
+      texFound = scene->mMaterials[i]->GetTexture( aiTextureType_DIFFUSE, texIndex, &path );
+      if( texFound == AI_SUCCESS )
+        printf( "Found Texture: %s\n", path.data );
+      texIndex++;
+    }
+  }
 
   // Create Screen Quad Model
   GLfloat positions[] = { -1.0, -1.0, 0.0,
@@ -175,14 +197,20 @@ void loadModels()
                            1.0,  1.0, 0.0,
                            1.0, -1.0, 0.0 };
   screen_quad = new GLObject();
-  screen_quad -> loadVertexAttribute( positions, 4, GLObject::ATTRIBUTE_POSITION );
+  screen_quad -> loadVertexAttribute( positions, 4, GLShader::ATTRIBUTE_POSITION );
 
   GLuint faces[] = { 0, 2, 1, 0, 3, 2 };
   screen_quad -> loadFaces( faces, 2 );
-  //screen_quad -> loadShader( "../data/lighting.glsl" );
-  screen_quad -> setTexture( fbos[0] -> getColorAttachmentTexture( 0 ), 0 );
-  screen_quad -> setTexture( fbos[0] -> getColorAttachmentTexture( 1 ), 1 );
-  screen_quad -> setTexture( fbos[0] -> getColorAttachmentTexture( 2 ), 2 ); 
+
+  GLMaterial* quad_mat = new GLMaterial();
+  quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER0, fbos[0] -> getColorAttachmentTexture( 0 ) );
+  quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER1, fbos[0] -> getColorAttachmentTexture( 1 ) );
+  quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER2, fbos[0] -> getColorAttachmentTexture( 2 ) ); 
+
+  GLShader* quad_shader = new GLShader( "../data/basic.glsl" );
+  //GLShader* quad_shader = new GLShader( "../data/lighting.glsl" );
+  screen_quad -> setMaterial( quad_mat );
+
 }
 
 void debugOutput( GLenum source, GLenum type, GLuint id,
@@ -219,7 +247,6 @@ void init()
   glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) glutGetProcAddress("glFramebufferRenderbuffer"); 
   glBindFramebuffer      = (PFNGLBINDFRAMEBUFFERPROC)      glutGetProcAddress("glBindFramebuffer");
   
-
   GLObject::setProjectionMatrix( 60.0 * M_PI / 180.0 , 1.0, 0.1, 100.0 );
   GLObject::setViewMatrix( eye, center, up );
  
@@ -231,9 +258,9 @@ void init()
   glEnable( GL_CULL_FACE );
   glDisable( GL_BLEND );
 
-  glEnable( GL_DEBUG_OUTPUT );
-  glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
-  glDebugMessageCallback( debugOutput, 0 );
+  //glEnable( GL_DEBUG_OUTPUT );
+  //glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
+  //glDebugMessageCallback( debugOutput, 0 );
 
   // initialize the look direction;
   dir = glm::normalize( center - eye );
@@ -318,7 +345,7 @@ int main( int argc, char **argv )
 
   glutInitDisplayMode( GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA|GLUT_MULTISAMPLE );
 
-  glutInitContextVersion (3, 3);
+  //glutInitContextVersion (3, 3);
   glutInitContextFlags (GLUT_COMPATIBILITY_PROFILE );
 
   glutInitWindowPosition(100,100);
