@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <GL/gl.h>
 #include <map>
+#include <string>
 #include "GLShader.h"
 
 class GLShader;
@@ -35,7 +36,7 @@ private:
 
 public:
 
-  GLMaterial(){}
+  GLMaterial();
   ~GLMaterial(){}
 
   void apply();
@@ -65,7 +66,7 @@ public:
 
 class GLTextureBank
 {
-  typedef std::map<const char*, GLuint> TextureList;
+  typedef std::map< std::string, GLuint> TextureList;
 
   TextureList bank;
 
@@ -79,6 +80,6 @@ public:
   /** getTexture() - load a texture if not in the bank,
    *     otherwise, retrieve the previously loaded texture;
    **/
-  GLuint getTexture( const char* file );
+  GLuint getTexture( std::string file );
 };
 #endif

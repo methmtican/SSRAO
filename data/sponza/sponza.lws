@@ -1,0 +1,402 @@
+LWSC
+3
+
+FirstFrame 0
+LastFrame 11
+FrameStep 1
+PreviewFirstFrame 0
+PreviewLastFrame 50
+PreviewFrameStep 1
+CurrentFrame 0
+FramesPerSecond 25
+
+LoadObjectLayer 1 Sponza/objects/sponza_3003_MM.lwo
+ShowObject 6 3
+ObjectMotion
+NumChannels 9
+Channel 0
+{ Envelope
+  1
+  Key 0 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 1
+{ Envelope
+  1
+  Key 0 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 2
+{ Envelope
+  1
+  Key 0 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 3
+{ Envelope
+  1
+  Key 3.1415925 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 4
+{ Envelope
+  1
+  Key 0 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 5
+{ Envelope
+  1
+  Key 0 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 6
+{ Envelope
+  1
+  Key 1 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 7
+{ Envelope
+  1
+  Key 1 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 8
+{ Envelope
+  1
+  Key 1 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+
+ShadowOptions 7
+
+AmbientColor 1 1 1
+AmbientIntensity 0.2
+NoiseReduction 1
+EnableRadiosity 1
+RadiosityType 1
+RadiosityIntensity 1
+RadiosityRays 48
+
+AddLight
+LightName Light
+ShowLight 1 5
+LightMotion
+NumChannels 9
+Channel 0
+{ Envelope
+  1
+  Key -25.57782 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 1
+{ Envelope
+  1
+  Key 56.580002 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 2
+{ Envelope
+  1
+  Key -11.703018 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 3
+{ Envelope
+  1
+  Key 7.2884951 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 4
+{ Envelope
+  1
+  Key 1.1938057 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 5
+{ Envelope
+  1
+  Key 0 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 6
+{ Envelope
+  1
+  Key 0.5 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 7
+{ Envelope
+  1
+  Key 0.5 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 8
+{ Envelope
+  1
+  Key 0.5 0 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+
+LockedChannels 48
+LightColor 0.999989 0.956853 0.819599
+LightIntensity 2
+AffectCaustics 1
+LightType 4
+LightQuality 4
+ShadowType 1
+
+AddCamera
+CameraName Camera
+ShowCamera 1 2
+CameraMotion
+NumChannels 6
+Channel 0
+{ Envelope
+  12
+  Key -15.402157 0 0 0 0 0 0 0 0
+  Key -5.4753785 0.039999999 0 0 0 0 0 0 0
+  Key -12.041104 0.079999998 0 0 0 0 0.93868583 0 0
+  Key -1.9451113 0.12 0 0 0 0 4.3847995 0 0
+  Key -2.3113716 0.16 0 0 0 0 0.0054396531 0 0
+  Key 10.114022 0.2 0 0 0 0 -0.0030846957 0 0
+  Key 7.2214117 0.23999999 0 0 0 0 0.0022616682 0 0
+  Key -10.999731 0.28 0 0 0 0 -22.467545 0 0
+  Key 9.6085091 0.31999999 0 0 0 0 0.70036519 0 0
+  Key 13.991761 0.36000001 0 0 0 0 0 0 0
+  Key 16.253309 0.40000001 0 0 0 0 -0.33559918 0 0
+  Key 8.9362755 0.44 0 0 0 0 -0.56871104 0 0
+  Behaviors 1 1
+}
+Channel 1
+{ Envelope
+  12
+  Key 1.8299993 0 0 0 0 0 0 0 0
+  Key 0.1 0.039999999 0 0 0 0 0.35751718 0 0
+  Key 7.3450031 0.079999998 0 0 0 0 0 0 0
+  Key 5.96 0.12 0 0 0 0 -11.152555 0 0
+  Key 6.4649997 0.16 0 0 0 0 0 0 0
+  Key 1.5699996 0.2 0 0 0 0 0 0 0
+  Key 1.5699996 0.23999999 0 0 0 0 0 0 0
+  Key 1.8299993 0.28 0 0 0 0 0.25820664 0 0
+  Key 1.8299993 0.31999999 0 0 0 0 0 0 0
+  Key 7.1299987 0.36000001 0 0 0 0 0.0049655125 0 0
+  Key 7.1299987 0.40000001 0 0 0 0 0 0 0
+  Key 8.6149988 0.44 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+Channel 2
+{ Envelope
+  12
+  Key -0.68434417 0 0 0 0 0 0 0 0
+  Key -2.8324342 0.039999999 0 0 0 0 0 0 0
+  Key -1.501084 0.079999998 0 0 0 0 -0.26875967 0 0
+  Key -2.7362511 0.12 0 0 0 0 0.71871948 0 0
+  Key -6.6755214 0.16 0 0 0 0 0.0096794525 0 0
+  Key -1.3188176 0.2 0 0 0 0 0.0038916226 0 0
+  Key -2.1380398 0.23999999 0 0 0 0 0.0044203396 0 0
+  Key 6.4084206 0.28 0 0 0 0 1.4436702 0 0
+  Key -5.1630387 0.31999999 0 0 0 0 -0.03259388 0 0
+  Key -1.1246072 0.36000001 0 0 0 0 0 0 0
+  Key 6.9331393 0.40000001 0 0 0 0 0.43337122 0 0
+  Key -0.59492928 0.44 0 0 0 0 0.043395996 0 0
+  Behaviors 1 1
+}
+Channel 3
+{ Envelope
+  12
+  Key 1.5149453 0 0 0 0 0 0 0 0
+  Key 0.83950335 0.039999999 0 0 0 0 0 0 0
+  Key 1.2112581 0.079999998 0 0 0 0 -0.51998776 0 0
+  Key 0.97563839 0.12 0 0 0 0 0.22879443 0 0
+  Key 0.69289494 0.16 0 0 0 0 -0.0034666127 0 0
+  Key -1.0978128 0.2 0 0 0 0 -0.16812935 0 0
+  Key 0.37349978 0.23999999 0 0 0 0 0.058931943 0 0
+  Key 2.2793994 0.28 0 0 0 0 1.1335734 0 0
+  Key -0.92327976 0.31999999 0 0 0 0 -0.005199919 0 0
+  Key -1.1955512 0.36000001 0 0 0 0 -0.0017333063 0 0
+  Key -2.2060974 0.40000001 0 0 0 0 -0.14906317 0 0
+  Key -5.6985016 0.44 0 0 0 0 -0.21492833 0 0
+  Behaviors 1 1
+}
+Channel 4
+{ Envelope
+  12
+  Key -0.19722219 0 0 0 0 0 0 0 0
+  Key -0.62831837 0.039999999 0 0 0 0 0.0034665831 0 0
+  Key 0.25307274 0.079999998 0 0 0 0 0.0069331662 0 0
+  Key -0.19896747 0.12 0 0 0 0 -0.69851685 0 0
+  Key -0.15358891 0.16 0 0 0 0 0 0 0
+  Key -0.5166173 0.2 0 0 0 0 -0.032932553 0 0
+  Key -1.012291 0.23999999 0 0 0 0 -0.074531585 0 0
+  Key -0.1204277 0.28 0 0 0 0 0.80944759 0 0
+  Key -0.017453287 0.31999999 0 0 0 0 0 0 0
+  Key -0.019198619 0.36000001 0 0 0 0 0 0 0
+  Key -0.10646506 0.40000001 0 0 0 0 -0.02079951 0 0
+  Key -0.17802353 0.44 0 0 0 0 -0.0086664651 0 0
+  Behaviors 1 1
+}
+Channel 5
+{ Envelope
+  12
+  Key 0 0 0 0 0 0 0 0 0
+  Key 0 0.039999999 0 0 0 0 0 0 0
+  Key 0 0.079999998 0 0 0 0 0 0 0
+  Key 0 0.12 0 0 0 0 0 0 0
+  Key 0 0.16 0 0 0 0 0 0 0
+  Key 0 0.2 0 0 0 0 0 0 0
+  Key 0 0.23999999 0 0 0 0 0 0 0
+  Key 0 0.28 0 0 0 0 0 0 0
+  Key 0 0.31999999 0 0 0 0 0 0 0
+  Key 0 0.36000001 0 0 0 0 0 0 0
+  Key 0 0.40000001 0 0 0 0 0 0 0
+  Key 0 0.44 0 0 0 0 0 0 0
+  Behaviors 1 1
+}
+
+ZoomFactor 2.1
+ResolutionMultiplier .25
+FrameSize 160 120
+PixelAspect 1
+MaskPosition 0 0 640 480
+MotionBlur 6
+FieldRendering 0
+BlurLength 0
+
+ApertureHeight 0.015
+Antialiasing 0
+AdaptiveSampling 1
+AdaptiveThreshold 0.1
+
+SolidBackdrop 1
+BackdropColor 0 0 0
+ZenithColor 0 0.1569 0.3137
+SkyColor 0.4706 0.7059 0.9412
+GroundColor 0.1961 0.1569 0.1176
+NadirColor 0.3922 0.3137 0.2353
+Plugin EnvironmentHandler 1 LW_ImageWorld
+1
+0
+0
+0
+1.8
+0.00261255
+{ Clip
+  { Still
+    "sponza/images/sky.JPG"
+  }
+  { Hue
+    0.029999999
+    0
+  }
+  { Saturation
+    -0.15000001
+    0
+  }
+}
+EndPlugin
+FogType 0
+DitherIntensity 1
+AnimatedDither 0
+Plugin ImageFilterHandler 1 LW_FPGamma
+1.6
+0
+EndPlugin
+PluginEnabled 0
+Plugin ImageFilterHandler 2 LW_HDRExpose
+1
+1
+0
+0
+0
+EndPlugin
+PluginEnabled 0
+Plugin ImageFilterHandler 3 LW_Corona
+{ Options
+  3
+  { Settings
+    0
+    0
+    1
+    0
+    0
+    1
+    ""
+  }
+  { AlternatesTwo
+    0
+    0
+    0
+    0
+    "DDS32(.dds)"
+  }
+  { Variants
+    { VariantParameter
+      3
+      0
+      { ParameterValue
+        0.94999999
+        0
+      }
+    }
+    { VariantParameter
+      3
+      0
+      { ParameterValue
+        0.2
+        0
+      }
+    }
+    { VariantParameter
+      3
+      0
+      { ParameterValue
+        30
+        0
+      }
+    }
+  }
+  { ColorTexture
+    0
+  }
+}
+EndPlugin
+PluginEnabled 0
+
+RenderMode 2
+RayTraceEffects 1
+RayRecursionLimit 16
+RayTraceOptimization 1
+DataOverlayLabel  
+OutputFilenameFormat 1
+SaveRGB 0
+SaveRGBImagesPrefix Z:\Sponza\+new+
+RGBImageSaver LW_Radiance(.hdr)
+SaveAlpha 0
+
+ViewConfiguration 0
+DefineView 0
+ViewType 9
+ViewAimpoint 11.82767 4.975 5.606672
+ViewZoomFactor 0.2710414
+
+GridNumber 80
+GridSize 1
+CameraViewBG 0
+ShowMotionPath 1
+ShowFogRadius 1
+ShowFogEffect 0
+ShowSafeAreas 0
+ShowFieldChart 0
+OverlayColor 7
+
+CurrentObject 0
+CurrentLight 0
+CurrentCamera 0
+GraphEditorData
+{ GraphEd_Favorites
+}
+{ GE_Expression_Lib
+  1
+}

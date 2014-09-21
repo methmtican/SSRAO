@@ -9,12 +9,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#ifdef WITH_IL
-  #include <IL/il.h>
-  #define ILUT_USE_OPENGL 1
-  #include <IL/ilut.h>
-#endif
-
 // GLM
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

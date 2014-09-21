@@ -9,5 +9,10 @@
 
 // conditionally compile in support for DevIL Utility ToolKit
 #cmakedefine WITH_ILUT
+#ifdef WITH_ILUT
+#define ILUT_USE_OPENGL 1
+#endif
+
+#define SSRAO_BASE_PATH "@SSRAO_BASE_PATH@"
 
 #endif

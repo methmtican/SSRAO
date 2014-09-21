@@ -1,9 +1,31 @@
+#include <GL/glew.h>
+
 #include "GLMaterial.h"
+#include "config.h"
+
+#ifdef WITH_IL
+  #include <IL/il.h>
+  #include <IL/ilut.h>
+#endif
+
+GLMaterial::GLMaterial()
+{
+  for( int i=0; i<NUM_TEXTYPE; i++ )
+    textures[i] = 0;
+}
 
 void GLMaterial::apply()
 {
   if( shader )
     shader -> apply();
+
+  if( textures[ TEXTYPE_DIFFUSE ] )
+  {
+    printf( "applying material: %i\n", textures[ TEXTYPE_DIFFUSE ] );
+    glActiveTexture( GL_TEXTURE0 );
+    glBindTexture( GL_TEXTURE_2D, textures[ TEXTYPE_DIFFUSE ] );
+    glUniform1i( shader -> uni_texture, 0 );
+  }
 }
 
 GLuint GLTextureBank::loadTexture( const char* filename )
@@ -12,13 +34,16 @@ GLuint GLTextureBank::loadTexture( const char* filename )
 
 #ifdef WITH_IL
 
-#define WITH_ILUT 1
 #ifdef WITH_ILUT
     glActiveTexture( GL_TEXTURE0 );
-    texture_id = ilutGLLoadImage( (char*)filename );
-    glBindTexture( GL_TEXTURE_2D, texture_id );
+
+    texture_id = ilutGLLoadImage( (char*) filename );
+
     if( !texture_id )
-        printf ("Error reading image file\n" );
+        printf( "Error creating GL image file\n" );
+    ILenum error;
+    while( ( error = ilGetError()) != IL_NO_ERROR )
+      printf( "%d: %s\n", error, iluErrorString(error));
 
     printf( "Loaded image: %s\n", filename );
     printf( "  resolution: %i x %i\n", ilGetInteger( IL_IMAGE_WIDTH ), ilGetInteger( IL_IMAGE_HEIGHT ));
@@ -33,6 +58,10 @@ GLuint GLTextureBank::loadTexture( const char* filename )
     ilBindImage( image );
     ilLoadImage( (char*) filename );
 
+    ILenum error;
+    while( ( error = ilGetError()) != IL_NO_ERROR )
+      printf( "%d: %s\n", error, iluErrorString(error));
+
     glGenTextures( 1, &texture_id );
     glActiveTexture( GL_TEXTURE0 );
     glEnable( GL_TEXTURE_2D );
@@ -43,15 +72,16 @@ GLuint GLTextureBank::loadTexture( const char* filename )
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
 
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8,
-                  ilGetInteger( IL_IMAGE_WIDTH ), ilGetInteger( IL_IMAGE_HEIGHT ), 0,
-                  GL_RGBA, GL_UNSIGNED_BYTE, ilGetData() );
-
     printf( "Loaded image: \n" );
     printf( "  resolution: %i x %i\n", ilGetInteger( IL_IMAGE_WIDTH ), ilGetInteger( IL_IMAGE_HEIGHT ));
     printf( "  num channels: %i\n", ilGetInteger( IL_IMAGE_CHANNELS ));
     printf( "  bytes per channel: %i\n", ilGetInteger( IL_IMAGE_BPC ));
     printf( "  size of data: %i\n", ilGetInteger( IL_IMAGE_SIZE_OF_DATA ));
+
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8,
+                  ilGetInteger( IL_IMAGE_WIDTH ), ilGetInteger( IL_IMAGE_HEIGHT ), 0,
+                  GL_RGBA, GL_UNSIGNED_BYTE, ilGetData() );
+
 #endif
 
 #else
@@ -120,13 +150,13 @@ GLTextureBank::~GLTextureBank()
   }
 }
 
-GLuint GLTextureBank::getTexture( const char* filename )
+GLuint GLTextureBank::getTexture( std::string filename )
 {
-  GLuint id = bank[ filename ];
+  GLuint id = bank[ filename ]; 
 
   if( !id )
   {
-    id = loadTexture( filename );
+    id = loadTexture( filename.c_str() );
     bank[ filename ] = id;
   }
   

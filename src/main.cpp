@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <vector>
 #include <math.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
 
 // assimp libraries
 #include <assimp/cimport.h>
@@ -27,11 +30,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
+// Conditional DevIL libraries
+#ifdef WITH_IL
+  #include <IL/il.h>
+  #include <IL/ilu.h>
+  #ifdef WITH_ILUT
+    #include <IL/ilut.h>
+  #endif
+#endif
 
 int num_models;
 GLObject** models;
 GLObject*  screen_quad;
+GLMaterial* materials;
 GLFrameBuffer** fbos;
+GLTextureBank texture_bank;
 
 typedef std::vector<glm::mat4> MatrixStack;
 MatrixStack matrix_stack;
@@ -87,7 +100,12 @@ void setModelMats( aiNode* node, int level=0 )
 void loadModels()
 {
 
-  const aiScene* scene = aiImportFile( "../data/sponza.obj", aiProcessPreset_TargetRealtime_MaxQuality );   
+  const char* path_model  = "/data/sponza/sponza.lwo" ;
+  
+  char path[256];
+  strcpy( path, SSRAO_BASE_PATH );
+  strcat( path, path_model );
+  const aiScene* scene = aiImportFile( path, aiProcessPreset_TargetRealtime_MaxQuality );   
 
   if( !scene )
   {
@@ -98,23 +116,53 @@ void loadModels()
   num_models = scene -> mNumMeshes;
   models = new GLObject*[ num_models ];
 
-  GLShader* scene_shader = new GLShader( "../data/basic.glsl" );
+  strcpy( path, SSRAO_BASE_PATH );
+  strcat( path, "/data/basic.glsl" );
+  GLShader* scene_shader = new GLShader( path );
 
-  GLMaterial* scene_mat = new GLMaterial;
-  scene_mat -> setShader( scene_shader );
-  
   printf( "Loaded sponza.obj\n" );
+
+  // Load all scene materials first
+  if( scene -> HasTextures() )
+    printf( "Model '%s' has embeded textures. Embeded textures are currently not supported, ignoring textures.\n", path );
+
+  materials = new GLMaterial[ scene -> mNumMaterials ];
+  printf( "num materials = %i\n", scene -> mNumMaterials );
+  std::string path_material;
+
+  for( unsigned int i=0; i < scene -> mNumMaterials; i++ )
+  {
+    printf( "Loading material %i\n", i );
+    materials[i] . setShader( scene_shader );
+
+    aiString path_mat; 
+   
+    // FIXME: currently only support a single diffuse texture
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_DIFFUSE, 0, &path_mat ))
+    {
+      path_material = SSRAO_BASE_PATH;
+      path_material += "/data/";
+      path_material += path_mat.data;
+
+      materials[i] . setTexture( GLMaterial::TEXTYPE_DIFFUSE,
+                                  texture_bank.getTexture( path_material ));
+      printf( "loaded material texture\n" );
+    }
+  }
+
+  // Load all scene meshes second
   printf( "  num meshes: %i\n", num_models );
   for( int i=0; i< num_models; i++ )
   {
-    models[i] = new GLObject();
-    models[i] ->  setMaterial( scene_mat );
-
     const aiMesh* mesh = scene -> mMeshes[i];
+
+    models[i] = new GLObject();
+    models[i] ->  setMaterial( &materials[ mesh -> mMaterialIndex ] );
     
     //printf( "  mesh %i - \"%s\":\n", i, mesh -> mName . C_Str() );
     //printf( "    num faces: %i\n", mesh -> mNumFaces );
     //printf( "    num verts: %i\n", mesh -> mNumVertices );
+    //printf( "    material index: %i\n", mesh -> mMaterialIndex );
 
     // create face array
     GLuint* faces = new GLuint[ 3*mesh -> mNumFaces ];
@@ -173,24 +221,6 @@ void loadModels()
 
   setModelMats( scene -> mRootNode );
 
-  printf( "Has embeded textures: %s\n", scene -> HasTextures() ? "YES" : "NO" );
-  printf( "num materials = %i\n", scene -> mNumMaterials );
-  for( unsigned int i=0; i < scene -> mNumMaterials; i++ )
-  {
-    int texIndex = 0;
-    aiReturn texFound = AI_SUCCESS;
-
-    aiString path; 
-
-    while( texFound == AI_SUCCESS )
-    {
-      texFound = scene->mMaterials[i]->GetTexture( aiTextureType_DIFFUSE, texIndex, &path );
-      if( texFound == AI_SUCCESS )
-        printf( "Found Texture: %s\n", path.data );
-      texIndex++;
-    }
-  }
-
   // Create Screen Quad Model
   GLfloat positions[] = { -1.0, -1.0, 0.0,
                           -1.0,  1.0, 0.0,
@@ -207,8 +237,9 @@ void loadModels()
   quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER1, fbos[0] -> getColorAttachmentTexture( 1 ) );
   quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER2, fbos[0] -> getColorAttachmentTexture( 2 ) ); 
 
-  GLShader* quad_shader = new GLShader( "../data/basic.glsl" );
-  //GLShader* quad_shader = new GLShader( "../data/lighting.glsl" );
+  strcpy( path, SSRAO_BASE_PATH );
+  strcat( path, "/data/basic.glsl" );
+  GLShader* quad_shader = new GLShader( path );
   screen_quad -> setMaterial( quad_mat );
 
 }
@@ -226,6 +257,16 @@ void init()
   GLenum error = glewInit();
   if( GLEW_OK != error )
     printf( "ERROR initializing glew: %s\n", glewGetErrorString( error ));
+
+#ifdef WITH_IL
+  ilInit();
+  iluInit();
+#ifdef WITH_ILUT
+  ilutInit();
+  ilutRenderer( ILUT_OPENGL );
+  //ilutEnable( ILUT_OPENGL_CONV );
+#endif
+#endif
 
   // initialize the matrix stack with an identity matrix
   matrix_stack.push_back( glm::mat4() );
@@ -339,6 +380,18 @@ void keyboard( unsigned char key, int x, int y )
   GLObject::setViewMatrix( eye, center, up );
 }
 
+void segFaultHandler( int sig )
+{
+  void *array[10];
+  size_t size;
+
+  size = backtrace( array, 10 );
+  fprintf( stderr, "Error: signal %d\n", sig );
+  backtrace_symbols_fd( array, size, STDERR_FILENO );
+
+  exit(1);
+}
+
 int main( int argc, char **argv )
 {
   glutInit(&argc, argv);
@@ -360,6 +413,8 @@ int main( int argc, char **argv )
   glutMouseFunc( mouseButtons );
   glutMotionFunc( mouseMotion );
   
+  signal( SIGSEGV, segFaultHandler );
+
   printf( "Initializing Renderer...\n" );
   init();
 
