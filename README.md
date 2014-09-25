@@ -1,7 +1,7 @@
 SSRAO
 =====
 
-This project requires the assimp (model loading) and DevIL (image loading) libraries.
+This project requires the assimp (model loading), DevIL (image loading, and GLM) libraries.
 
 TODO:
 * Update cmake to check for library dependencies
