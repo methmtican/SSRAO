@@ -149,7 +149,7 @@ void loadModels()
       path  = SSRAO_TEXTURE_PATH;
       path += path_mat.data;
 
-      //printf( "  Loading DIFFUSE texture: %s\n", path_material.c_str() );
+      //printf( "  Loading DIFFUSE texture: %s\n", path.c_str() );
       //printf( "    uv index = %u\n", uv_idx );
       //printf( "    mapping mode = %s\n", mapping == aiTextureMapping_UV ? "UV": "NOT UV" );
       materials[i] . setTexture( GLMaterial::TEXTYPE_DIFFUSE,
@@ -233,7 +233,6 @@ void loadModels()
         data[2*tc]   = mesh -> mTextureCoords[uvidx][tc].x;
         data[2*tc+1] = mesh -> mTextureCoords[uvidx][tc].y;
       }
-      //printf( "    overriding uvidx: %i\n", uvidx );
       models[i] -> loadVertexAttribute( data, mesh -> mNumVertices,
                                         (GLShader::Attribute)(GLShader::ATTRIBUTE_TEXCOORD0+uvidx) );
       delete[] data;

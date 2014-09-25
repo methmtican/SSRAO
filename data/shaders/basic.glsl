@@ -44,10 +44,9 @@ out vec4 color;
 void main()
 {
   // Simply grab the texel and modify by vertex color
-  //vec4 color = texture2D( texture, texcoord_vert ) ;
+  color = texture2D( texture, texcoord_vert ) ;
   //color.rgb *= color_vert.rgb ;
 
-  color = vec4( 1.0 );
   color = color * dot( normal_vert, light_dir );
   color = vec4( color ) ;
 }
