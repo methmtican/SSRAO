@@ -30,6 +30,7 @@ private:
   float shininess_strength;
 
   GLuint textures[ NUM_TEXTYPE ];
+  GLuint texture_uvs[ NUM_TEXTYPE ];
 
   GLShader* shader;
   
@@ -44,8 +45,14 @@ public:
   void setShader( GLShader* _shader ){ shader = _shader; }
   GLShader* getShader(){ return shader; }
 
-  void setTexture( TexType type, GLuint id ){ textures[type] = id; }
+  void setTexture( TexType type, GLuint id, GLuint uvidx=0 )
+  { 
+    textures[type] = id; 
+    texture_uvs[type] = uvidx;
+  }
   GLuint getTexture( TexType type ){ return textures[type]; }
+ 
+  GLuint getUVIndex( TexType type){ return texture_uvs[type]; }
 
   void setAmbient( glm::vec4& color ){ ambient = color; }
   glm::vec4 getAmbient(){ return ambient; }

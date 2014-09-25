@@ -63,8 +63,8 @@ void GLObject::loadInterleaved( GLfloat* data, int num_verticies,
     int idata_size = num_indicies;
 
     if( !vao )
-      glGenVertexArraysAPPLE(1, &vao );
-    glBindVertexArrayAPPLE( vao );
+      glGenVertexArrays(1, &vao );
+    glBindVertexArray( vao );
 
     GLuint vbuffer;
     glGenBuffers( 1, &vbuffer );
@@ -79,20 +79,20 @@ void GLObject::loadInterleaved( GLfloat* data, int num_verticies,
     glVertexAttribPointer( GLShader::attrib_position, 3, GL_FLOAT, 0, 8*sizeof(float), (void*)0 );
     glEnableVertexAttribArray( GLShader::attrib_position );
 
-    glVertexAttribPointer( GLShader::attrib_texcoord, 2, GL_FLOAT, 0, 8*sizeof(float), (void*)(3*sizeof(float)) );
-    glEnableVertexAttribArray( GLShader::attrib_texcoord );
+    glVertexAttribPointer( GLShader::attrib_texcoord0, 2, GL_FLOAT, 0, 8*sizeof(float), (void*)(3*sizeof(float)) );
+    glEnableVertexAttribArray( GLShader::attrib_texcoord0 );
 
     glVertexAttribPointer( GLShader::attrib_color, 3, GL_FLOAT, 0, 8*sizeof(float), (void*)(5*sizeof(float)) );
     glEnableVertexAttribArray( GLShader::attrib_color );
 
-    glBindVertexArrayAPPLE( 0 );
+    glBindVertexArray( 0 );
 }
 
 void GLObject::loadVertexAttribute( GLfloat* data, int num_vertices, GLShader::Attribute attribute )
 {
     if( !vao )
-      glGenVertexArraysAPPLE(1, &vao );
-    glBindVertexArrayAPPLE( vao );
+      glGenVertexArrays(1, &vao );
+    glBindVertexArray( vao );
 
     GLint num_comps = 0;
     GLint attrib = 0;
@@ -110,9 +110,37 @@ void GLObject::loadVertexAttribute( GLfloat* data, int num_vertices, GLShader::A
       num_comps = 4;
       attrib = GLShader::attrib_color;
       break;
-    case GLShader::ATTRIBUTE_TEXCOORD:
+    case GLShader::ATTRIBUTE_TEXCOORD0:
       num_comps = 2;
-      attrib = GLShader::attrib_texcoord;
+      attrib = GLShader::attrib_texcoord0;
+      break;
+    case GLShader::ATTRIBUTE_TEXCOORD1:
+      num_comps = 2;
+      attrib = GLShader::attrib_texcoord1;
+      break;
+    case GLShader::ATTRIBUTE_TEXCOORD2:
+      num_comps = 2;
+      attrib = GLShader::attrib_texcoord2;
+      break;
+    case GLShader::ATTRIBUTE_TEXCOORD3:
+      num_comps = 2;
+      attrib = GLShader::attrib_texcoord3;
+      break;
+    case GLShader::ATTRIBUTE_TEXCOORD4:
+      num_comps = 2;
+      attrib = GLShader::attrib_texcoord4;
+      break;
+    case GLShader::ATTRIBUTE_TEXCOORD5:
+      num_comps = 2;
+      attrib = GLShader::attrib_texcoord5;
+      break;
+    case GLShader::ATTRIBUTE_TEXCOORD6:
+      num_comps = 2;
+      attrib = GLShader::attrib_texcoord6;
+      break;
+    case GLShader::ATTRIBUTE_TEXCOORD7:
+      num_comps = 2;
+      attrib = GLShader::attrib_texcoord7;
       break;
     };
 
@@ -125,15 +153,15 @@ void GLObject::loadVertexAttribute( GLfloat* data, int num_vertices, GLShader::A
     glEnableVertexAttribArray( attrib );
     glVertexAttribPointer( attrib, num_comps, GL_FLOAT, 0, 0, (void*)0 );
 
-    glBindVertexArrayAPPLE( 0 );
+    glBindVertexArray( 0 );
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
 }
 
 void GLObject::loadFaces( GLuint* faces, int _num_faces )
 {
     if( !vao )
-      glGenVertexArraysAPPLE(1, &vao );
-    glBindVertexArrayAPPLE( vao );
+      glGenVertexArrays(1, &vao );
+    glBindVertexArray( vao );
 
     GLuint buffer;
     // FIXME: this currently assumes triangle faces
@@ -141,7 +169,7 @@ void GLObject::loadFaces( GLuint* faces, int _num_faces )
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, buffer );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, 3*_num_faces*sizeof(GLuint), faces, GL_STREAM_DRAW );
 
-    glBindVertexArrayAPPLE( 0 );
+    glBindVertexArray( 0 );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 
     num_faces = _num_faces;
@@ -177,7 +205,7 @@ void GLObject::draw()
       //if( uni_tex_pos != -1 )    glUniform1i( uni_tex_pos,   2 );
     }
 
-    glBindVertexArrayAPPLE( vao );
+    glBindVertexArray( vao );
 
     glDrawElements( GL_TRIANGLES, num_faces*3, GL_UNSIGNED_INT, (void*)0 );
 }

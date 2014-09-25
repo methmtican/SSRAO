@@ -112,15 +112,22 @@ GLShader::GLShader( const char* filename )
     if( shader_geom != -1 ) glAttachShader(prog, shader_geom );
     glAttachShader( prog, shader_frag );
 
-    //glBindFragDataLocation( prog, 0, "color" );
-    //glBindFragDataLocation( prog, 1, "gbuff1" );
-    //glBindFragDataLocation( prog, 2, "gbuff2" );
+    glBindFragDataLocation( prog, 0, "color" );
+    glBindFragDataLocation( prog, 1, "gbuff1" );
+    glBindFragDataLocation( prog, 2, "gbuff2" );
 
     //printf( "Binding attribute locations...\n" );
     glBindAttribLocation( prog, attrib_position, "position" );
     glBindAttribLocation( prog, attrib_normal,   "normal" );
-    glBindAttribLocation( prog, attrib_color,    "texcoord" );
-    glBindAttribLocation( prog, attrib_texcoord, "color" );
+    glBindAttribLocation( prog, attrib_color,    "color" );
+    glBindAttribLocation( prog, attrib_texcoord0, "texcoord0" );
+    glBindAttribLocation( prog, attrib_texcoord1, "texcoord1" );
+    glBindAttribLocation( prog, attrib_texcoord2, "texcoord2" );
+    glBindAttribLocation( prog, attrib_texcoord3, "texcoord3" );
+    glBindAttribLocation( prog, attrib_texcoord4, "texcoord4" );
+    glBindAttribLocation( prog, attrib_texcoord5, "texcoord5" );
+    glBindAttribLocation( prog, attrib_texcoord6, "texcoord6" );
+    glBindAttribLocation( prog, attrib_texcoord7, "texcoord7" );
 
     glLinkProgram( prog );
     glValidateProgram( prog );
@@ -133,6 +140,12 @@ GLShader::GLShader( const char* filename )
     uni_tex_color   = glGetUniformLocation( prog, "tex_color" );
     uni_tex_pos     = glGetUniformLocation( prog, "tex_pos" );
     uni_tex_normal  = glGetUniformLocation( prog, "tex_normal" );
+
+    glUseProgram( prog );
+  
+    glUniform1i( uni_texture, 0 );
+
+    glUseProgram( 0 );
 
     delete[] shader_src[0];
     delete[] shader_src[1];

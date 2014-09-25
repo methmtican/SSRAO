@@ -58,6 +58,7 @@ int res[] = { 800, 800 };
 
 int mouse_button_state;
 glm::vec2 mouse_pos;
+int ignore_mesh = -1;
 
 void draw()
 {
@@ -68,7 +69,11 @@ void draw()
   //fbos[0] -> bind();
 
   for( int i=0; i<num_models; i++ )
+  {
+    if( i == ignore_mesh ) 
+      continue;
     models[i] -> draw();
+  }
 
   // Lighting Pass
   //GLFrameBuffer::unbind();
@@ -100,54 +105,83 @@ void setModelMats( aiNode* node, int level=0 )
 void loadModels()
 {
 
-  const char* path_model  = "/data/sponza/sponza.lwo" ;
+  const char* path_model  = "sponza.3DS" ;
   
-  char path[256];
-  strcpy( path, SSRAO_BASE_PATH );
-  strcat( path, path_model );
-  const aiScene* scene = aiImportFile( path, aiProcessPreset_TargetRealtime_MaxQuality );   
+  std::string path  = SSRAO_MODEL_PATH;
+              path += path_model ;
+
+  const aiScene* scene = aiImportFile( path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality );   
+
+  printf( "Loaded %s\n", path.c_str() );
 
   if( !scene )
   {
-    printf( "ERROR reading sponza.obj!" );
+    printf( "ERROR reading %s!\n", path.c_str() );
     exit(1);
   }
 
   num_models = scene -> mNumMeshes;
   models = new GLObject*[ num_models ];
 
-  strcpy( path, SSRAO_BASE_PATH );
-  strcat( path, "/data/basic.glsl" );
-  GLShader* scene_shader = new GLShader( path );
-
-  printf( "Loaded sponza.obj\n" );
+  path  = SSRAO_SHADER_PATH;
+  path += "basic.glsl";
+  GLShader* scene_shader = new GLShader( path.c_str() );
 
   // Load all scene materials first
   if( scene -> HasTextures() )
-    printf( "Model '%s' has embeded textures. Embeded textures are currently not supported, ignoring textures.\n", path );
+    printf( "Model '%s' has embeded textures. Embeded textures are currently not supported, ignoring textures.\n", path.c_str() );
 
   materials = new GLMaterial[ scene -> mNumMaterials ];
   printf( "num materials = %i\n", scene -> mNumMaterials );
-  std::string path_material;
 
   for( unsigned int i=0; i < scene -> mNumMaterials; i++ )
   {
-    printf( "Loading material %i\n", i );
+    printf( "Loading material %i...\n", i );
     materials[i] . setShader( scene_shader );
 
     aiString path_mat; 
+    aiTextureMapping mapping;
+    unsigned int uv_idx;
    
     // FIXME: currently only support a single diffuse texture
-    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_DIFFUSE, 0, &path_mat ))
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_DIFFUSE, 0, &path_mat, &mapping, &uv_idx ))
     {
-      path_material = SSRAO_BASE_PATH;
-      path_material += "/data/";
-      path_material += path_mat.data;
+      path  = SSRAO_TEXTURE_PATH;
+      path += path_mat.data;
 
+      //printf( "  Loading DIFFUSE texture: %s\n", path_material.c_str() );
+      //printf( "    uv index = %u\n", uv_idx );
+      //printf( "    mapping mode = %s\n", mapping == aiTextureMapping_UV ? "UV": "NOT UV" );
       materials[i] . setTexture( GLMaterial::TEXTYPE_DIFFUSE,
-                                  texture_bank.getTexture( path_material ));
-      printf( "loaded material texture\n" );
+                                 texture_bank.getTexture( path ),
+                                 uv_idx );
     }
+    int idx = 1;
+    while( idx < 8 )
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_DIFFUSE, idx++, &path_mat, &mapping, &uv_idx ))
+      printf( "Material %i has more than one diffuse texture which is unsupported!\n", i );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_SPECULAR, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: SPECULAR( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_AMBIENT, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: AMBIENT( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_EMISSIVE, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: EMISSIVE( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_HEIGHT, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: HEIGHT( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_NORMALS, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: NORMALS( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_SHININESS, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: SHININESS( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_OPACITY, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: OPACITY( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_DISPLACEMENT, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: DISPLACEMENT( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_LIGHTMAP, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: LIGHTMAP( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_REFLECTION, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: REFLECTION( %s )\n", i, path_mat.data );
+    if( AI_SUCCESS == scene->mMaterials[i]->GetTexture( aiTextureType_UNKNOWN, 0, &path_mat ))
+      printf( "Material %i has unsupported texture type: UNKNOWN( %s )\n", i, path_mat.data );
   }
 
   // Load all scene meshes second
@@ -189,19 +223,23 @@ void loadModels()
                                         GLShader::ATTRIBUTE_NORMAL );
     }
 
-    if( mesh -> HasTextureCoords(0))
+    int uvidx = 0;
+    while( mesh -> HasTextureCoords(uvidx))
     {
-      //printf( "    has tex coords\n" );
+      //printf( "    has tex coord %i\n", uvidx );
       float* data = new float[ 2*mesh -> mNumVertices ];
       for( int tc=0; tc < mesh -> mNumVertices; tc++ )
       {
-        data[2*tc]   = mesh -> mTextureCoords[0][tc].x;
-        data[2*tc+1] = mesh -> mTextureCoords[0][tc].y;
+        data[2*tc]   = mesh -> mTextureCoords[uvidx][tc].x;
+        data[2*tc+1] = mesh -> mTextureCoords[uvidx][tc].y;
       }
+      //printf( "    overriding uvidx: %i\n", uvidx );
       models[i] -> loadVertexAttribute( data, mesh -> mNumVertices,
-                                        GLShader::ATTRIBUTE_TEXCOORD );
+                                        (GLShader::Attribute)(GLShader::ATTRIBUTE_TEXCOORD0+uvidx) );
       delete[] data;
+      uvidx++;
     }
+    
 
     if( mesh -> HasVertexColors(0))
     {
@@ -237,9 +275,9 @@ void loadModels()
   quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER1, fbos[0] -> getColorAttachmentTexture( 1 ) );
   quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER2, fbos[0] -> getColorAttachmentTexture( 2 ) ); 
 
-  strcpy( path, SSRAO_BASE_PATH );
-  strcat( path, "/data/basic.glsl" );
-  GLShader* quad_shader = new GLShader( path );
+  path  = SSRAO_SHADER_PATH;
+  path += "basic.glsl";
+  GLShader* quad_shader = new GLShader( path.c_str() );
   screen_quad -> setMaterial( quad_mat );
 
 }
@@ -264,7 +302,7 @@ void init()
 #ifdef WITH_ILUT
   ilutInit();
   ilutRenderer( ILUT_OPENGL );
-  //ilutEnable( ILUT_OPENGL_CONV );
+  ilutEnable( ILUT_OPENGL_CONV );
 #endif
 #endif
 
@@ -299,9 +337,11 @@ void init()
   glEnable( GL_CULL_FACE );
   glDisable( GL_BLEND );
 
-  //glEnable( GL_DEBUG_OUTPUT );
-  //glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
-  //glDebugMessageCallback( debugOutput, 0 );
+#ifdef WITH_GL_DEBUG
+  glEnable( GL_DEBUG_OUTPUT );
+  glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
+  glDebugMessageCallback( debugOutput, 0 );
+#endif
 
   // initialize the look direction;
   dir = glm::normalize( center - eye );
@@ -374,6 +414,17 @@ void keyboard( unsigned char key, int x, int y )
     case 'd':
       side_dir = glm::normalize( glm::cross( up, -dir ));
       eye += side_dir * 0.2f;
+      break;
+    case 'p':
+      ignore_mesh++;
+      printf( "Ignoring mesh %i\n", ignore_mesh );
+      break;
+    case 'o':
+      if( ignore_mesh > -1 )
+      {
+        ignore_mesh--;
+        printf( "Ignoring mesh %i\n", ignore_mesh );
+      }
       break;
   };
   center = eye + dir;

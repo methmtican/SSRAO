@@ -21,10 +21,8 @@ void GLMaterial::apply()
 
   if( textures[ TEXTYPE_DIFFUSE ] )
   {
-    printf( "applying material: %i\n", textures[ TEXTYPE_DIFFUSE ] );
     glActiveTexture( GL_TEXTURE0 );
     glBindTexture( GL_TEXTURE_2D, textures[ TEXTYPE_DIFFUSE ] );
-    glUniform1i( shader -> uni_texture, 0 );
   }
 }
 
@@ -45,13 +43,17 @@ GLuint GLTextureBank::loadTexture( const char* filename )
     while( ( error = ilGetError()) != IL_NO_ERROR )
       printf( "%d: %s\n", error, iluErrorString(error));
 
+    glBindTexture( GL_TEXTURE_2D, texture_id );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+
     printf( "Loaded image: %s\n", filename );
     printf( "  resolution: %i x %i\n", ilGetInteger( IL_IMAGE_WIDTH ), ilGetInteger( IL_IMAGE_HEIGHT ));
     printf( "  num channels: %i\n", ilGetInteger( IL_IMAGE_CHANNELS ));
     printf( "  bytes per channel: %i\n", ilGetInteger( IL_IMAGE_BPC ));
     printf( "  size of data: %i\n", ilGetInteger( IL_IMAGE_SIZE_OF_DATA ));
-    //glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    //glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 #else
     ILuint image;
     ilGenImages( 1, &image );
@@ -69,10 +71,10 @@ GLuint GLTextureBank::loadTexture( const char* filename )
 
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 
-    printf( "Loaded image: \n" );
+    printf( "Loaded image: %s\n", filename );
     printf( "  resolution: %i x %i\n", ilGetInteger( IL_IMAGE_WIDTH ), ilGetInteger( IL_IMAGE_HEIGHT ));
     printf( "  num channels: %i\n", ilGetInteger( IL_IMAGE_CHANNELS ));
     printf( "  bytes per channel: %i\n", ilGetInteger( IL_IMAGE_BPC ));
@@ -92,8 +94,8 @@ GLuint GLTextureBank::loadTexture( const char* filename )
 
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 
 
     FILE *fd = fopen( filename, "rb" ) ;
