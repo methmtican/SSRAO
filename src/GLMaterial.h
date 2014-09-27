@@ -14,7 +14,7 @@ class GLMaterial
 public:
   
   enum TexType { TEXTYPE_DIFFUSE  = 0, 
-                 TEXTYPE_GBUFFER0 = 1, 
+                 TEXTYPE_GBUFFER0 = 1,
                  TEXTYPE_GBUFFER1 = 2,
                  TEXTYPE_GBUFFER2 = 3,
                  NUM_TEXTYPE      = 4 };

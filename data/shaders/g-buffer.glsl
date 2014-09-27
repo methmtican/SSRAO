@@ -23,6 +23,7 @@ void main()
   normal_vert   = normalize(( modelview * vec4( normal, 0.0 )).xyz );
   pos_vert      = modelview * pos;
 
+
   gl_Position = projection * modelview * pos;
 }
 
@@ -38,15 +39,17 @@ in vec3 normal_vert;
 in vec4 pos_vert;
 
 out vec4 color;
-out vec4 gbuff1; // normal + unused
-out vec4 gbuff2; // position
+out vec4 gbuff1;
+out vec4 gbuff2;
 
 void main()
 {
-  color = vec4( 1.0 ) ;
-  gbuff1 = vec4( normal_vert, 0.0 ) ;
-  gbuff2 = pos_vert;
-  
+  // Simply grab the texel and modify by vertex color
+  color = texture2D( texture, texcoord_vert ) ;
+  //color.rgb *= color_vert.rgb ;
+  color = vec4( color ) ;
+  gbuff1 = vec4( normal_vert, 1.0 );
+  gbuff2 = pos_vert; 
 }
 
 #endif

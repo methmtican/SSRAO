@@ -73,7 +73,8 @@ void GLFrameBuffer::pushColorAttachment( GLenum iformat )
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   glTexImage2D( GL_TEXTURE_2D, 0, iformat, res[0], res[1], 0,
-                GL_RGB, GL_UNSIGNED_BYTE, 0 );
+                //GL_RGB, GL_UNSIGNED_BYTE, 0 );
+                GL_RGB, GL_FLOAT, 0 );
 
   glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+num_color_attachments,
                           GL_TEXTURE_2D, texture_id[num_color_attachments], 0 );
@@ -137,7 +138,12 @@ GLuint GLFrameBuffer::getColorAttachmentTexture( int attachment )
 
 void GLFrameBuffer::bind()
 {
-  glBindFramebuffer( GL_FRAMEBUFFER, fbo_id );
+  glBindFramebuffer( GL_DRAW_FRAMEBUFFER, fbo_id );
+
+  GLenum enable[] = { GL_COLOR_ATTACHMENT0,
+                      GL_COLOR_ATTACHMENT1,
+                      GL_COLOR_ATTACHMENT2 };
+  glDrawBuffers( 3, enable );
 }
 
 void GLFrameBuffer::unbind()

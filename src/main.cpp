@@ -62,11 +62,14 @@ int ignore_mesh = -1;
 
 void draw()
 {
-  glClearColor( 0.4, 0.4, 1.0, 1.0 );
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
   // GBuffer Pass
-  //fbos[0] -> bind();
+  fbos[0] -> bind();
+
+  glEnable( GL_DEPTH_TEST );
+  glDepthMask( 1 );
+
+  glClearColor( 0.0, 0.0, 0.0, 0.0 );
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
   for( int i=0; i<num_models; i++ )
   {
@@ -75,10 +78,16 @@ void draw()
     models[i] -> draw();
   }
 
-  // Lighting Pass
-  //GLFrameBuffer::unbind();
+  GLFrameBuffer::unbind();
 
-  //screen_quad -> draw();
+  // Lighting Pass
+  glClearColor( 0.4, 0.4, 1.0, 1.0 );
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+  glDepthMask( 0 );
+  glDisable( GL_DEPTH_TEST );
+
+  screen_quad -> draw();
 
   glutSwapBuffers();
   glutPostRedisplay();
@@ -124,7 +133,8 @@ void loadModels()
   models = new GLObject*[ num_models ];
 
   path  = SSRAO_SHADER_PATH;
-  path += "basic.glsl";
+  //path += "basic.glsl";
+  path += "g-buffer.glsl";
   GLShader* scene_shader = new GLShader( path.c_str() );
 
   // Load all scene materials first
@@ -275,8 +285,10 @@ void loadModels()
   quad_mat -> setTexture( GLMaterial::TEXTYPE_GBUFFER2, fbos[0] -> getColorAttachmentTexture( 2 ) ); 
 
   path  = SSRAO_SHADER_PATH;
-  path += "basic.glsl";
+  //path += "basic.glsl";
+  path += "lighting.glsl";
   GLShader* quad_shader = new GLShader( path.c_str() );
+  quad_mat -> setShader( quad_shader );
   screen_quad -> setMaterial( quad_mat );
 
 }

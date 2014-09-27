@@ -24,6 +24,24 @@ void GLMaterial::apply()
     glActiveTexture( GL_TEXTURE0 );
     glBindTexture( GL_TEXTURE_2D, textures[ TEXTYPE_DIFFUSE ] );
   }
+ 
+  if( textures[ TEXTYPE_GBUFFER0 ] )
+  {
+    glActiveTexture( GL_TEXTURE0 );
+    glBindTexture( GL_TEXTURE_2D, textures[ TEXTYPE_GBUFFER0 ] );
+  }
+
+  if( textures[ TEXTYPE_GBUFFER1 ] )
+  {
+    glActiveTexture( GL_TEXTURE1 );
+    glBindTexture( GL_TEXTURE_2D, textures[ TEXTYPE_GBUFFER1 ] );
+  }
+
+  if( textures[ TEXTYPE_GBUFFER2 ] )
+  {
+    glActiveTexture( GL_TEXTURE2 );
+    glBindTexture( GL_TEXTURE_2D, textures[ TEXTYPE_GBUFFER2 ] );
+  }
 }
 
 GLuint GLTextureBank::loadTexture( const char* filename )

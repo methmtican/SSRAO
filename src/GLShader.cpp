@@ -144,6 +144,9 @@ GLShader::GLShader( const char* filename )
     glUseProgram( prog );
   
     glUniform1i( uni_texture, 0 );
+    glUniform1i( uni_tex_color, 0 );
+    glUniform1i( uni_tex_normal, 1 );
+    glUniform1i( uni_tex_pos, 2 );
 
     glUseProgram( 0 );
 
